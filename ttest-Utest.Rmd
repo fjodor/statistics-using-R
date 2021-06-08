@@ -1,0 +1,245 @@
+---
+title: "t Test or Mann-Whitney U Test /<br>Wilcoxon Rank-Sum Test?"
+author: "StatistikinDD"
+date: "Presentation Created: `r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    chakra: libs/remark-latest.min.js
+    lib_dir: libs
+    css: ["libs/_css/xaringan-themer.css", "libs/_css/my_css.css"]
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      slideNumberFormat: "%current%"
+      ratio: 16:9
+---
+
+```{r setup, include = FALSE}
+
+options(htmltools.dir.version = FALSE)
+# knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, comment = "")
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+
+# Generate data
+
+```
+
+layout: true
+
+# t Test or Mann-Whitney U Test /<br>Wilcoxon Rank-Sum Test?
+
+---
+
+## Research Question: Satisfaction with Partnership
+
+.center[![relationship](https://media.giphy.com/media/1eEMmEZzaZaxoay0zk/giphy.gif)]
+
+---
+
+## Research Question: Satisfaction with Partnership
+
+* Two independent groups of people in long-term relationships (> 3 years)
+* Both get the same question:  
+> ***On a scale from 0 to 100,  
+> how satisfied are you with your relationship?***
+
+--
+
+.pull-left[
+### Group A's Previous Question
+
+> Think of the ***worst experience*** in your relationship.
+> On a scale from 0 to 100, how much did it **affect trust** in your partner?
+]
+
+--
+
+.pull-right[
+### Group B's Previous Q.
+
+> Think of the ***best moment*** in your relationship.
+> On a scale from 0 to 100, how much did it **strengthen** your bond?
+]
+
+---
+
+layout: false
+
+# Parametric vs. Non-Parametric Tests
+
+.pull-left[
+### Parametric: <br>Independent Samples t Test
+
+* Assumes data are on an interval scale
+* Assumes data are normally distributed
+* Assumes equal variances in groups  
+(you can use *Welch* correction in case of unequal variances)
+]
+
+--
+
+.pull-right[
+### Non-Parametric: <br>Wilcoxon Rank-Sum Test = Mann-Whitney U Test
+
+* Uses ranks instead of original data
+* Makes no assumption about the underlying distribution
+* Recommended if assumptions of t-Test are not met, or sample sizes are small
+]
+
+---
+
+# Scenario 1: "Well-behaved" Data
+
+```{r data-simulation, echo = FALSE, message = FALSE, warning = FALSE}
+
+library(tidyverse)
+
+set.seed(2021)
+relationship <- tibble(
+  group = rep(c("Worst Experience", "Best Moment"), each = 15),
+  satisfaction = c(rnorm(n = 15, mean = 60, sd = 9),
+                   rnorm(n = 15, mean = 75, sd = 9)) 
+  ) %>% 
+  mutate(group = fct_inorder(group))
+
+```
+
+.pull-left[
+```{r ref.label = "plot1", echo = FALSE, eval = TRUE, warning = FALSE}
+```
+]
+
+.pull-right[
+```{r plot1, eval = FALSE}
+
+library(tidyverse)
+
+ggplot(relationship, 
+       aes(x = group,
+           y = satisfaction,
+           color = group)) +
+  geom_boxplot(outlier.color = NA) +
+  geom_jitter(size = 3, width = 0.3) +
+  stat_summary(fun = "mean",
+    color = "black", shape = 8) +
+  ggthemes::theme_solarized(
+    base_size = 16) +
+  scale_color_manual(values =
+        c("darkgreen", "darkblue"),
+        guide = NULL) +
+  labs(title = "Framing Effect?",
+       x = "Group",
+       y = "Satisfaction with Partnership",
+       caption = "* Mean")
+
+```
+]
+
+---
+
+# Scenario 1: "Well-behaved" Data
+
+### Independent Samples t Test
+
+.pull-left[
+```{r ref.label = "ttest1", echo = FALSE, eval = TRUE}
+```
+]
+
+.pull-right[
+```{r ttest1, echo = TRUE, eval = FALSE}
+
+library(gtsummary)
+
+relationship %>% 
+  tbl_summary(by = group,
+    statistic = list(
+      all_continuous() ~
+        "{mean} ({sd})")) %>% 
+  add_p(test = 
+        satisfaction ~ "t.test")
+```
+]
+
+--
+
+### Wilcoxon Rank-Sum Test
+
+.pull-left[
+```{r ref.label = "wilcox1", echo = FALSE, eval = TRUE}
+```
+]
+
+.pull-right[
+```{r wilcox1, echo = TRUE, eval = FALSE}
+
+relationship %>% 
+  tbl_summary(by = group) %>% 
+  add_p(test = 
+        satisfaction ~ "wilcox.test")
+```
+]
+
+---
+
+# Scenario 2: "Not-so-well-behaved" Data
+
+```{r data-extension, echo = FALSE}
+
+relationship <- relationship %>% 
+  add_row(group = "Worst Experience",
+          satisfaction = 180) %>% 
+  mutate(group = fct_inorder(group))
+```
+
+```{r, ref.label = "plot1", echo = FALSE, warning = FALSE, fig.align = "center"}
+```
+
+---
+
+# Scenario 2: "Not-so-well-behaved" Data
+
+### Independent Samples t Test
+
+.pull-left[
+```{r, ref.label = "ttest1", echo = FALSE}
+```
+]
+
+.pull-right[
+```{r, ref.label = "ttest1", echo = TRUE, eval = FALSE}
+```
+]
+
+--
+
+### Wilcoxon Rank-Sum Test
+
+.pull-left[
+```{r, ref.label = "wilcox1", echo = FALSE}
+```
+]
+
+.pull-right[
+```{r, ref.label = "wilcox1", echo = TRUE, eval = FALSE}
+```
+]
+
+---
+
+class: center, middle
+
+# Thanks!
+
+### Youtube: StatistikinDD
+
+### Twitter: @StatistikinDD
+
+### github: fjodor
+
+Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
+
+The chakra comes from [remark.js](https://remarkjs.com), [**knitr**](https://yihui.org/knitr), and [R Markdown](https://rmarkdown.rstudio.com).
+
+Thanks to **Yihui Xie** for *{knitr}* and *{xaringan}* and **Garrick Aden-Buie** for *{xaringanthemer}*.
