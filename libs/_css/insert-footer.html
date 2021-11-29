@@ -1,0 +1,51 @@
+<style>
+.logo {
+  background-image: url(libs/_Images/IT-Schulungen_footer.png);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom;
+  position: fixed;
+  bottom: 0px;
+  left: 0 px;
+  right: 0px;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}
+
+/* Source: https://github.com/yihui/xaringan/wiki/Slide-number */
+.remark-slide-number  {
+  opacity: 1;
+  color: #FFFFFF;
+  font-size: 13pt;
+  bottom: 17px;
+  right: 50%;
+  z-index: 1;
+}
+
+.title-slide .remark-slide-number {
+  display: none;
+}
+
+.hide-footer .remark-slide-number {
+  display: none;
+}
+
+/* Source: https://github.com/yihui/xaringan/issues/34 */
+
+</style>
+
+<script>
+document
+  .querySelectorAll(
+    '.remark-slide-content' +
+    // ':not(.title-slide)' +
+    // add additional classes to exclude here, e.g.
+    // ':not(.inverse)' +
+    ':not(.hide-footer)' +
+    ':not(.agenda)'
+  )
+  .forEach(el => {
+    el.innerHTML += '<div class="logo"></div>';
+  });
+</script>
