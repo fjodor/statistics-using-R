@@ -1,0 +1,211 @@
+---
+title: "Shiny Gadgets: Cool Helpers in Data Analysis"
+subtitle: "A lesser known side of Shiny"
+author: "StatistikinDD"
+date: "Presentation Created: `r Sys.Date()`"
+output:
+  xaringan::moon_reader:
+    chakra: libs/remark-latest.min.js
+    lib_dir: libs
+    css: ["xaringan-themer.css", "libs/_css/my_css.css"]
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+      slideNumberFormat: "%current%"
+      ratio: 16:9
+---
+
+```{r setup, include = FALSE}
+
+options(htmltools.dir.version = FALSE)
+# knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE, comment = "")
+knitr::opts_chunk$set(echo = TRUE, comment = "")
+xaringanthemer::style_mono_accent(title_slide_background_color = "#EDF4FB",
+                                  title_slide_text_color = "#000000",
+                                  base_font_size = "18px")
+Sys.setenv(LANG = "en")
+
+```
+
+# A Working Example: Brush Points
+
+```{r, echo = FALSE}
+
+library(shiny)
+library(miniUI)
+library(ggplot2)
+theme_set(theme_bw(base_size = 16))
+
+ggbrush <- function(data, xvar, yvar) {
+  ui <- miniPage(
+    gadgetTitleBar("Drag to select points"),
+    miniContentPanel(
+      # The brush = "brush" argument means we can listen for
+      # brush events on the plot using input$brush.
+      plotOutput("plot", height = "100%", brush = "brush")
+    )
+  )
+  
+  server <- function(input, output, session) {
+
+    # Render the plot
+    output$plot <- renderPlot({
+      # Plot the data with x/y vars indicated by the caller
+      ggplot(data, aes({{xvar}}, {{yvar}})) +
+        geom_point()
+    })
+  
+    # Handle the Done button being pressed.
+    observeEvent(input$done, {
+      # Return the brushed points. See ?shiny::brushedPoints.
+      stopApp(brushedPoints(data, input$brush))
+    })
+  }
+  
+  runGadget(ui, server)
+}
+
+ggbrush(mtcars, hp, mpg)
+```
+
+Credit to the RStudio Team: https://shiny.rstudio.com/articles/gadgets.html
+
+---
+
+# Second Example: gglabeller
+
+```{r, echo = FALSE, message = FALSE, warning = FALSE}
+# library(devtools)
+# install_github("AliciaSchep/gglabeller")
+
+library(gglabeller)
+library(ggplot2)
+library(ggrepel)
+
+p <- ggplot(mtcars, aes(x = hp, y = mpg)) +
+  geom_point() +
+  theme_classic(base_size = 18)
+
+gglabeller_example <- gglabeller(p, aes(label = rownames(mtcars)))
+
+gglabeller_example
+```
+
+Credit to Alicia Schep - see gglabeller on Github
+
+---
+
+# R Code: First Example
+
+.pull-left[
+```{r ggbrush-code1, echo = TRUE, eval = FALSE}
+library(shiny)
+library(miniUI)
+library(ggplot2)
+theme_set(theme_bw(base_size = 16))
+
+ggbrush <- function(data, xvar, yvar) { #<<
+  ui <- miniPage( #<<
+    gadgetTitleBar("Drag to select points"),
+    miniContentPanel(
+      # The brush = "brush" argument means we can listen for
+      # brush events on the plot using input$brush.
+      plotOutput("plot", height = "100%", brush = "brush")
+    )
+  )
+  
+
+```
+
+* Credit to the RStudio Team: https://shiny.rstudio.com/articles/gadgets.html
+* Note: I slightly updated the code, using {{}} to pass variables to ggplot()
+
+]
+
+.pull-right[
+```{r ggbrush-code2, echo = TRUE, eval = FALSE}
+  server <- function(input, output, session) { #<<
+
+    # Render the plot
+    output$plot <- renderPlot({ #<<
+      # Plot the data with x/y vars indicated by the caller
+      ggplot(data, aes({{xvar}}, {{yvar}})) +
+        geom_point()
+    })
+  
+    # Handle the Done button being pressed.
+    observeEvent(input$done, { #<<
+      # Return the brushed points. See ?shiny::brushedPoints.
+      stopApp(brushedPoints(data, input$brush))
+    })
+  }
+  
+  runGadget(ui, server) #<<
+}
+
+ggbrush(mtcars, hp, mpg) #<<
+```
+]
+
+---
+
+# Shiny Gadgets vs. Shiny Apps
+
+.pull-left[
+## Shiny App
+
+.content-box-grey[
+### Present output of an analysis
+### For end users
+### Often hosted on server
+]]
+
+--
+
+.pull-right[
+## Shiny Gadget
+
+.content-box-gray[
+### Use during analysis
+### For enhancing programming experience
+### For R users
+]]
+
+---
+
+# Resources
+
+### gglabeller comes as an R package
+* Written by **Alicia Schep**
+* install from github: `devtools::install_github("AliciaSchep/gglabeller")`
+
+### Customizations
+
+* Set *viewer* parameter in *runGadget()*: pane / dialog; set width and height 
+* You can register Shiny Gadgets as **RStudio Addins**
+
+### Learn more
+
+* RStudio Website: https://shiny.rstudio.com/articles/gadgets.html
+* Webinar, **Garrett Grolemund**: https://resources.rstudio.com/webinars/shiny-gadgets
+* **Hadley Wickham**'s presentation at Shiny Dev Con 2016: https://resources.rstudio.com/shiny-developer-conference/shinydevcon-gadgets-hadleywickham-1080p?_ga=2.187073576.1466710020.1638966460-723354145.1599642879
+
+
+---
+
+class: center, middle
+
+# Thanks!
+
+### Youtube: StatistikinDD
+
+### Twitter: @StatistikinDD
+
+### github: fjodor
+
+Slides created via the R package [**xaringan**](https://github.com/yihui/xaringan).
+
+The chakra comes from [remark.js](https://remarkjs.com), [**knitr**](https://yihui.org/knitr), and [R Markdown](https://rmarkdown.rstudio.com).
+
+Thanks to **Yihui Xie** for *{knitr}* and *{xaringan}* and **Garrick Aden-Buie** for *{xaringanthemer}*.
